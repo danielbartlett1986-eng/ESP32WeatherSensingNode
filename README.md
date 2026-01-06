@@ -6,8 +6,8 @@ This repository contains the code for a weather sensing system using ESP32 micro
 
         Weather Sensing Server – Hosts a web server to display the latest readings and provides a web interface for monitoring.
 
-##Table of Contents
-
+## Table of Contents
+0
 Features
 
 Hardware Requirements
@@ -24,7 +24,7 @@ Usage
 
 License
 
-##Features
+## Features
 
 Reads temperature, humidity, and pressure using BME280 sensors.
 
@@ -38,7 +38,7 @@ Web server interface to display real-time readings.
 
 Optionally logs readings to Google Sheets or other external databases.
 
-##Hardware Requirements
+## Hardware Requirements
 
 1× ESP32 Dev Board (Node)
 
@@ -60,7 +60,7 @@ Optional: LEDs for status indication
 
 Power supply (LiPo battery or USB)
 
-##Software Requirements
+## Software Requirements
 
 Arduino IDE (v1.8.19 or later) or PlatformIO
 
@@ -116,14 +116,15 @@ Configuration
 
 Open secrets.h (or edit WeatherNode.ino) and set your Wi-Fi credentials:
 
+```arduino      
 #define WIFI_SSID "your_SSID"
 #define WIFI_PASSWORD "your_PASSWORD"
-
+```
 
 Set any server or ESP-NOW MAC addresses if needed:
-
+```arduino
 #define SERVER_MAC "xx:xx:xx:xx:xx:xx"
-
+```
 
 Optional: Configure deep sleep duration, web server port, or Google Sheets logging.
 
