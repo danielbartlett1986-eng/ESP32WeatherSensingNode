@@ -1,115 +1,142 @@
-# ESP32 BME280 HTTP Sensor Node
-# This project implements a low‑power ESP32 sensor node that:
+# ESP32 Weather Sensing System
 
-Connects to Wi‑Fi
+This repository contains the code for a weather sensing system using ESP32 microcontrollers. The system is divided into two main components:
 
-Reads temperature, humidity, pressure from a BME280 sensor
+        Weather Sensing Node – Collects environmental data like temperature, humidity, pressure, and battery voltage.
 
-Measures battery voltage using an analog input and resistor divider
+        Weather Sensing Server – Hosts a web server to display the latest readings and provides a web interface for monitoring.
 
-Sends all readings to an HTTP endpoint on your network
+## Table of Contents
+0
+Features
 
-Enters deep sleep between measurements to save power
+Hardware Requirements
 
-The sketch targets the Arduino‑ESP32 core and uses the Adafruit BME280 library for sensor access.
-​
+Software Requirements
 
-## Hardware overview
-MCU: ESP32 development board (Arduino‑compatible)
+Wiring / Pinout
 
-Sensor: BME280 (I²C, address 0x76)
+Installation
 
-Solar panel: Generic 5w solar panel
+Configuration
 
-Solar Charger: CN3065
+Usage
 
-Boost/Buck Converter - required because the CN3065 outputs 3.3v and our board requires 5v to operate. Converter is adjustable so measure and turn the potentiometer up until your volt meter reads 5v. 
+License
 
-Wirerouting as follows: 
+## Features
 
-Solar panel --> CN3065
+Reads temperature, humidity, and pressure using BME280 sensors.
 
-CN3065 Batt out --> 18650 Battery
+Monitors battery voltage.
 
-CN3065 Sys out --> Boost Buck converter --> ESP32
+Low-power operation (deep sleep support optional).
 
-## Battery measurement:
+ESP32 node sends data via ESP-NOW or Wi-Fi to server.
 
-Analog input on GPIO 33 (BATTERY_PIN)
+Web server interface to display real-time readings.
 
-Resistor divider from battery to ADC input (e.g. 27 kΩ / 100 kΩ)
+Optionally logs readings to Google Sheets or other external databases.
 
-### I²C wiring:
+## Hardware Requirements
 
-SDA_PIN → GPIO 26
+1× ESP32 Dev Board (Node)
 
-SCL_PIN → GPIO 27
+1× ESP32 Dev Board (Server)
 
-Update the pin assignments in the sketch if your wiring is different.
-​
+1× BME280 environmental sensor per node
 
-## What the code does
-### At each wake‑up cycle the ESP32:
+1x CN3065 Solar Charging Board
 
-Initializes serial, I²C, and the BME280 sensor.
+1x 5w Solar Panel
 
-Connects to the configured Wi‑Fi network using the provided SSID and password.
-​
-Reads:
+1x 18650 battery w/ holder
 
-Temperature (°C), converts to Fahrenheit
+1x Boost/Buck Converter
 
-Relative humidity (%)
+Wires, breadboard, or PCB for connections
 
-Pressure (hPa)
+Optional: LEDs for status indication
 
-Battery voltage (V) using the ADC and divider scaling
+Power supply (LiPo battery or USB)
 
-Logs readings to the serial monitor for debugging.
+## Software Requirements
 
-Builds a URL‑encoded payload (e.g. temp=72.34&hum=40.1&pres=1008.5&batt=3.98).
+Arduino IDE (v1.8.19 or later) or PlatformIO
 
-Sends the payload via HTTP POST to http://<serverIP>/update on port 80 using HTTPClient.
-​
+ESP32 board support package installed
 
-Prints the HTTP status code to serial.
+Libraries:
 
-Enters deep sleep for SLEEP_SECONDS seconds (default 300 s / 5 min).
-​
+Wire.h
 
-On the next timer wake‑up, the chip restarts at setup() and repeats the process.
+Adafruit_GFX.h
 
-## Configuration
-Edit these sections near the top of the sketch before building:
+Adafruit_SSD1306.h (if using OLED display)
 
-```arduino 
-// ---------- WiFi ----------
-const char* ssid     = "YOUR_NETWORK";
-const char* password = "PASSWORD";
+Adafruit_BME280.h
 
-// ---------- Server ----------
-const char* serverIP = "XXX.XXX.XX.XX";
-const int   serverPort = 80;
-Set ssid / password to your Wi‑Fi network credentials.
+WiFi.h
+
+WebServer.h
+
+ESP32_NOW.h
+
+HTTPClient.h (if logging to external service)
+
+ESP_Google_Sheet_Client.h (optional, if using Google Sheets)
+
+Wiring / Pinout
+BME280 Sensor
+Node Pin	BME280 Pin
+26 (SDA)	SDA
+27 (SCL)	SCL
+3.3V	VCC
+GND	GND
+Battery Monitoring
+Node Pin	Function
+33	Battery voltage
+LEDs (optional)
+Pin	Color / Status
+2	Node active
+Other pins	Temperature gauge (optional)
+Installation
+
+Clone this repository:
+
+git clone https://github.com/yourusername/esp32-weather-system.git
+cd esp32-weather-system
+
+
+Open WeatherNode.ino in Arduino IDE for the sensing node or WeatherServer.ino for the server.
+
+Install all required libraries via the Arduino Library Manager.
+
+Configuration
+
+Open secrets.h (or edit WeatherNode.ino) and set your Wi-Fi credentials:
+
+```arduino      
+#define WIFI_SSID "your_SSID"
+#define WIFI_PASSWORD "your_PASSWORD"
 ```
 
-Set serverIP to the host that will receive the HTTP POSTs (for example, a local HTTP server, ESP32 web server, or home automation bridge).
-​
-
-serverPort is currently fixed at 80; update if your server listens on a different port.
-
-### Deep sleep interval:
-
+Set any server or ESP-NOW MAC addresses if needed:
 ```arduino
-#define SLEEP_SECONDS 300   // 5 minutes
-Adjust SLEEP_SECONDS to change how often the node wakes up and reports data.
-```
-### Battery measurement scaling:
-
-```arduino
-#define R1 27000.0
-#define R2 100000.0
-These correspond to the resistor values in your battery voltage divider (top and bottom).
-The readBattery() helper uses the ADC reading and a fixed factor to reconstruct approximate battery voltage based on this divider.
+#define SERVER_MAC "xx:xx:xx:xx:xx:xx"
 ```
 
+Optional: Configure deep sleep duration, web server port, or Google Sheets logging.
+
+Usage
+
+Weather Node: Upload the sketch, power the device, and it will begin sending sensor data.
+
+Weather Server: Upload the sketch, connect to Wi-Fi, and open the ESP32 IP address in a browser to see the dashboard.
+
+The web page automatically shows the latest readings with a timestamp of the last sensor update.
+
+License
+
+This project is licensed under the MIT License. See LICENSE
+ for details.
