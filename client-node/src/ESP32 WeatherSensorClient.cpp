@@ -9,8 +9,9 @@ const char* ssid     = WIFI_SSID;
 const char* password = WIFI_PASSWORD;
 
 // ---------- Server ----------
-const char* serverIP = serverIP;   // INSIDE ESP32
-const int   serverPort = 80;
+// Example: Set your server IP in include/secrets.h
+// static const char* serverIP = "192.168.10.7";
+// static const int serverPort = 80;
 
 // ---------- Pins ----------
 #define SDA_PIN 26
@@ -96,7 +97,7 @@ void setup() {
   Serial.println("---------------------------");
 
   HTTPClient http;
-  String url = String("http://") + serverIP + "/update";
+  String url = String("http://") + serverIP + "/update"; //Uses values from secrets.h if you have your own.
   String payload =
     "temp=" + String(tempF, 2) +
     "&hum=" + String(hum, 1) +
