@@ -182,37 +182,14 @@ void updateOLED() {
   display.setTextSize(2);
   display.setCursor(0,0);
   display.print("TEMP ");
-  display.print((int)temperature); // whole number only
+  display.print((int)temperature); // whole number
   display.print("F");
-
-// Divider
-  display.drawLine(0,18,127,18,SSD1306_WHITE);
-
-
-  // ---------- Battery Gauge ----------
-  float minV = 3.0;  // minimum battery voltage
-  float maxV = 4.2;  // maximum battery voltage
-  float battWidth = 40; // width of the gauge in pixels
-  float battHeight = 6; // height of the gauge in pixels
-
-  // map voltage to width
-  float fillWidth = ((battery - minV) / (maxV - minV)) * battWidth;
-  if(fillWidth < 0) fillWidth = 0;
-  if(fillWidth > battWidth) fillWidth = battWidth;
-
-  // position: right after battery text
-  int x = 50 + String(battery,2).length() * 6; // rough estimate
-  int y = 34; // same row as battery text
-
-  // outline
-  display.drawRect(x, y, battWidth, battHeight, SSD1306_WHITE);
-
-  // fill
-  display.fillRect(x, y, fillWidth, battHeight, SSD1306_WHITE);
 
   // ---------- BOTTOM: Date + Time with blinking colon ----------
   struct tm timeinfo;
-  display.setCursor(0,52);
+  display.setTextSize(1);
+  display.setCursor(0,52); // bottom row
+
   if (getLocalTime(&timeinfo)) {
     const char* months[] = {
       "Jan","Feb","Mar","Apr","May","Jun",
