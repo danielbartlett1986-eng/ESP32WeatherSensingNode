@@ -5,6 +5,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <secrets.h>
+#include "time.h"
 
 // ---------- WiFi ----------
 const char* ssid     = WIFI_SSID;
@@ -66,6 +67,15 @@ void setup() {
   }
   Serial.println("\nWiFi connected: " + WiFi.localIP().toString());
 
+  // ---------- Time (NTP) ----------
+  configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+
+  struct tm timeinfo;
+  if (getLocalTime(&timeinfo)) {
+    Serial.println("Time synchronized");
+  } else {
+   Serial.println("Failed to obtain time");
+  }
   // Server route
   server.on("/update", HTTP_POST, handleUpdate);
   server.on("/update", HTTP_GET, handleUpdate);  // temporary GET for browser testing
@@ -105,10 +115,33 @@ void setup() {
 
   server.begin();
 
-  display.setCursor(0,0);
-  display.println("Server Ready");
-  display.println(WiFi.localIP());
-  display.display();
+  // ---------- Startup Screen ----------
+display.clearDisplay();
+
+// Title
+display.setTextSize(2);
+display.setCursor(0,0);
+display.println("WEATHER");
+
+// Subtitle
+display.setTextSize(1);
+display.setCursor(0,18);
+display.println("Telemetry Node");
+
+// Divider
+display.drawLine(0,28,127,28,SSD1306_WHITE);
+
+// Status
+display.setCursor(0,32);
+display.println("Status: ONLINE");
+
+// IP Address
+display.setCursor(0,44);
+display.print("IP ");
+display.println(WiFi.localIP());
+
+display.display();
+
 }
 
 void loop() {
@@ -145,36 +178,65 @@ void handleUpdate() {
 void updateOLED() {
   display.clearDisplay();
 
-  // Big temperature headline
+  // ---------- TOP: Temperature ----------
   display.setTextSize(2);
   display.setCursor(0,0);
-  display.print(temperature,1);
-  display.print((char)247); // degree symbol
-  display.println("F");
+  display.print("TEMP ");
+  display.print((int)temperature); // whole number only
+  display.print("F");
 
-  // Divider line
+// Divider
   display.drawLine(0,18,127,18,SSD1306_WHITE);
 
-  // Supporting stats
-  display.setTextSize(1);
-  display.setCursor(0,22);
-  display.print("Hum "); display.print(humidity,0); display.println("%");
 
-  display.setCursor(64,22);
-  display.print("Pres "); display.print(pressure,0);
+  // ---------- Battery Gauge ----------
+  float minV = 3.0;  // minimum battery voltage
+  float maxV = 4.2;  // maximum battery voltage
+  float battWidth = 40; // width of the gauge in pixels
+  float battHeight = 6; // height of the gauge in pixels
 
-  display.setCursor(0,34);
-  display.print("Batt "); display.print(battery,2); display.println("V");
+  // map voltage to width
+  float fillWidth = ((battery - minV) / (maxV - minV)) * battWidth;
+  if(fillWidth < 0) fillWidth = 0;
+  if(fillWidth > battWidth) fillWidth = battWidth;
 
-  // Data age
-  display.setCursor(64,34);
-  display.print("Age ");
-  display.print((millis() - lastUpdateMillis) / 1000);
-  display.print("s");
+  // position: right after battery text
+  int x = 50 + String(battery,2).length() * 6; // rough estimate
+  int y = 34; // same row as battery text
+
+  // outline
+  display.drawRect(x, y, battWidth, battHeight, SSD1306_WHITE);
+
+  // fill
+  display.fillRect(x, y, fillWidth, battHeight, SSD1306_WHITE);
+
+  // ---------- BOTTOM: Date + Time with blinking colon ----------
+  struct tm timeinfo;
+  display.setCursor(0,52);
+  if (getLocalTime(&timeinfo)) {
+    const char* months[] = {
+      "Jan","Feb","Mar","Apr","May","Jun",
+      "Jul","Aug","Sep","Oct","Nov","Dec"
+    };
+
+    // blinking colon
+    char colon = (timeinfo.tm_sec % 2) ? ':' : ' ';
+
+    display.printf(
+      "%02d %s %04d  %02d%c%02d",
+      timeinfo.tm_mday,
+      months[timeinfo.tm_mon],
+      timeinfo.tm_year + 1900,
+      timeinfo.tm_hour,
+      colon,
+      timeinfo.tm_min
+    );
+  } else {
+    display.print("Time not set");
+  }
 
   display.display();
 }
-
 
 void updateLEDGauge(float temp){
   int level = 0;
